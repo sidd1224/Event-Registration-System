@@ -1,9 +1,7 @@
 package com.siddh.EventRegistrationSystem.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +9,8 @@ import java.util.List;
 @Entity
 @Data
 @RequiredArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

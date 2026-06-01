@@ -3,6 +3,9 @@ spring:
     url: jdbc:mysql://localhost:3306/evntregsysdb
     username: root
     password: Siddh@123
+  jpa:
+    hibernate:
+      ddl-auto: update
 
 server:
   port: 8081
