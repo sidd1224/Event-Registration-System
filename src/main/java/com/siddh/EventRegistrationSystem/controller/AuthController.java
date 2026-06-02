@@ -4,6 +4,7 @@ import com.siddh.EventRegistrationSystem.dto.AuthRequest;
 import com.siddh.EventRegistrationSystem.dto.AuthResponse;
 import com.siddh.EventRegistrationSystem.entity.User;
 import com.siddh.EventRegistrationSystem.service.JwtAuthService;
+import com.siddh.EventRegistrationSystem.service.RefreshTokenService;
 import com.siddh.EventRegistrationSystem.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,8 @@ public class AuthController {
 
   private final JwtAuthService jwtAuthService;
 
+  private final RefreshTokenService refreshTokenService;
+
 
     @PostMapping("/register")
     public ResponseEntity<?> createUser(@RequestBody User user){
@@ -40,7 +43,11 @@ public class AuthController {
                  authRequest.getPassword()
          )
          );
-         String token=jwtAuthService.generateToken(auth.getName());
+        String refreshToken=refreshTokenService.createRefreshToken(User.builder()
+                .userName(auth.getName())
+                .build());
+        String accessToken=jwtAuthService.generateToken(auth.getName());
+
          return new ResponseEntity<>(new AuthResponse(token) ,HttpStatus.ACCEPTED);
 
     }
