@@ -8,12 +8,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
-
+import java.time.Duration;
 import java.time.Instant;
-import java.util.Optional;
-import java.util.Random;
 import java.util.UUID;
-import java.util.random.RandomGenerator;
+
 
 @Slf4j
 @Component
@@ -26,7 +24,7 @@ public class RefreshTokenService {
 
     public RefreshToken createRefreshToken(User user){
         RefreshToken refreshToken= RefreshToken.builder().token(UUID.randomUUID().toString())
-                .expiry(Instant.now().plusMillis(1000*60*30))
+                .expiry(Instant.now().plus(Duration.ofDays(30)))
                 .revoked(false)
                 .user(user)
                 .build();

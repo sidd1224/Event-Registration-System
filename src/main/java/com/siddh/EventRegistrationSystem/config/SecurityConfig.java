@@ -31,7 +31,10 @@ public class SecurityConfig {
                                 .requestMatchers(
                                         "/public/**","/auth/**"
                                 ).permitAll()
-                                .anyRequest().authenticated())
+                                .requestMatchers("/admin/**").hasRole("ADMIN")
+                                .anyRequest().authenticated()
+
+                )
 
                 .sessionManagement(
                         session->
@@ -44,8 +47,9 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
     }
+
     @Bean
-    AuthenticationManager authenticationManager(
+    public AuthenticationManager authenticationManager(
             AuthenticationConfiguration config)
             throws Exception {
         return config.getAuthenticationManager();

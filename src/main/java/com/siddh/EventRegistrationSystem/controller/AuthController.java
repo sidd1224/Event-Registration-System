@@ -5,18 +5,12 @@ import com.siddh.EventRegistrationSystem.dto.AuthResponse;
 import com.siddh.EventRegistrationSystem.dto.RefreshRequest;
 import com.siddh.EventRegistrationSystem.entity.RefreshToken;
 import com.siddh.EventRegistrationSystem.entity.User;
-import com.siddh.EventRegistrationSystem.repository.RefreshTokenRepository;
-import com.siddh.EventRegistrationSystem.repository.UserRepository;
+import com.siddh.EventRegistrationSystem.service.AuthService;
 import com.siddh.EventRegistrationSystem.service.JwtAuthService;
 import com.siddh.EventRegistrationSystem.service.RefreshTokenService;
-import com.siddh.EventRegistrationSystem.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,22 +19,16 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth")
 public class AuthController {
 
-  private final UserService userService;
-
-  private final AuthenticationManager authenticationManager;
-
   private final JwtAuthService jwtAuthService;
 
   private final RefreshTokenService refreshTokenService;
 
-  private final UserRepository userRepository;
-
-  private final RefreshTokenRepository refreshTokenRepository;
+  private final AuthService authService;
 
 
     @PostMapping("/register")
-    public ResponseEntity<?> createUser(@RequestBody User user){
-        boolean userCreated=userService.createUser(user);
+    public ResponseEntity<?> userRegistration(@RequestBody User user){
+        boolean userCreated=authService.userRegister(user);
         if(userCreated){
             return new ResponseEntity<>(HttpStatus.CREATED);
         }
@@ -49,29 +37,14 @@ public class AuthController {
     @PostMapping("/login")
     @Transactional
     public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest authRequest){
-         Authentication auth=authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                 authRequest.getUserName(),
-                 authRequest.getPassword()
-         )
-         );
-         User authUser=userRepository.findByUserName(auth.getName());
-         refreshTokenService.revokeAllTokens(authUser);
-        String refreshToken=refreshTokenService.createRefreshToken(authUser).getToken();
-        String accessToken=jwtAuthService.generateToken(authUser.getUserName());
-
-         return new ResponseEntity<>(new AuthResponse(accessToken,refreshToken) ,HttpStatus.ACCEPTED);
-
+         AuthResponse authResponse=authService.userLogin(authRequest);
+         return new ResponseEntity<>(authResponse,HttpStatus.ACCEPTED);
     }
     @PostMapping("/refresh")
-    @Transactional
     public  ResponseEntity<?> refreshRequest(@RequestBody RefreshRequest refreshToken){
-            RefreshToken validatedRefreshToken = refreshTokenService.validateRefreshToken(refreshToken.getRefreshToken());
-            if (validatedRefreshToken!=null){
-                refreshTokenService.revokeTokens(validatedRefreshToken.getToken());
-                String newRefreshToken = refreshTokenService.createRefreshToken((validatedRefreshToken.getUser())).getToken();
-                String accessToken = jwtAuthService.generateToken((validatedRefreshToken.getUser().getUserName()));
-                return new ResponseEntity<>(new AuthResponse(accessToken, newRefreshToken), HttpStatus.ACCEPTED);
-            }
-            return new ResponseEntity<>("Token Not Found:", HttpStatus.NOT_ACCEPTABLE);
-        }
+        AuthResponse authResponse=authService.userRefresh(refreshToken);
+        return new ResponseEntity<>(authResponse, HttpStatus.ACCEPTED);
+    }
+
+
 }
